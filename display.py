@@ -7,14 +7,17 @@ data = pd.read_csv(file_path)
 
 print(data.head())
 
-row = data.iloc[3]
+for i in range(10):
+    row = data.iloc[i]
 
-label = row["label"]
-pixels = row.drop("label").values
+    label = row["label"]
+    pixels = row.drop("label").values
 
-image = pixels.reshape(28, 28)
+    image = pixels.reshape(28, 28)
 
-plt.imshow(image, cmap="gray")
-plt.title(f"Label: {label}")
-plt.axis("off")
-plt.show()
+    plt.imshow(image, cmap="grey")
+    plt.title(f"Number: {label}")
+    plt.axis("off")
+
+    plt.savefig(f"figure{i}.jpg")
+    #plt.show()
