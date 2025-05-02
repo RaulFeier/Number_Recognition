@@ -10,8 +10,8 @@ class DigitDrawer:
         self.window = tk.Tk()
         self.window.title("Digit Recognizer")
 
-        self.canvas_width = 280
-        self.canvas_height = 280
+        self.canvas_width = 1000
+        self.canvas_height = 1000
         self.canvas = tk.Canvas(self.window, width=self.canvas_width, height=self.canvas_height, bg='white')
         self.canvas.pack()
 
@@ -55,7 +55,7 @@ class DigitDrawer:
         cropped = inverted.crop(bbox)
 
         # Resize to 20x20 with antialiasing
-        resized = cropped.resize((20, 20), Image.LANCZOS)
+        resized = cropped.resize((28, 28), Image.LANCZOS)
 
         # Paste into 28x28 canvas (centered)
         final_img = Image.new("L", (28, 28), 0)
@@ -67,9 +67,9 @@ class DigitDrawer:
         img_array /= 255.0  # normalize to [0,1]
         img_array = img_array.reshape(784, 1)
 
-        plt.imshow(img_array.reshape(28, 28), cmap='gray')
-        plt.title("Preprocessed GUI Input")
-        plt.show()
+        # plt.imshow(img_array.reshape(28, 28), cmap='gray')
+        # plt.title("Preprocessed GUI Input")
+        # plt.show()
 
         return img_array 
 

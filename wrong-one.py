@@ -1,5 +1,6 @@
 import model, pickle, mnist_loader
 import matplotlib.pyplot as plt
+import numpy as np
 
 with open("network.pkl", "rb") as f:
     weights, biases = pickle.load(f)
@@ -13,17 +14,17 @@ training_data, validation_data, test_data = mnist_loader.modify_data()
 
 
 def evaluate():
+    count  = 0
     for (x, y) in test_data:
-        output = net.feedforward(x)
-        index, mx = 0
-        # for i in range(11):
-        #     if output[i] > mx:
-        #         mx = output[i]
-        #         index = i
+        output = net.predict(x)
+        p = int(np.argmax(output))
+        if y != p:
+            count += 1
+            plt.imshow(x.reshape(28, 28), cmap='gray')
+            plt.title(f"{y, p}")
+            plt.show()
+    return count
 
-        # if y[index] != 1:
-        #     print("wrong")
-            
+print(evaluate())
+      
 evaluate()
-#output = net.predict()
-#print(output)
