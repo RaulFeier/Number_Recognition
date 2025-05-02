@@ -92,3 +92,6 @@ class Network(object):
     def evaluate(self, test_data):
         test_results = [(np.argmax(self.feedforward(x)), y) for (x, y) in test_data]
         return sum(int(x == y) for (x, y) in test_results)
+    
+    def predict(self, x):
+        return self.feedforward(x)

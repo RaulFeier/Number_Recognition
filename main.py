@@ -1,7 +1,12 @@
-import ml, mnist_loader
+import model, pickle, gui
 
-training_data, validation_data, test_data = mnist_loader.modify_data()
+with open("network.pkl", "rb") as f:
+    weights, biases = pickle.load(f)
 
-net = ml.Network([784, 30, 10])
+net = model.Network([784, 64, 64, 10])
 
-net.SGD(training_data, 30, 10, 3.0, test_data=test_data)
+net.weights = weights
+net.biases = biases
+
+drawer = gui.DigitDrawer(net)
+drawer.run()

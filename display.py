@@ -5,19 +5,20 @@ import pandas as pd
 file_path = "train.csv"
 data = pd.read_csv(file_path)
 
-print(data.head())
+row = data.iloc[0]
+print(row)
 
-for i in range(10):
-    row = data.iloc[i]
+for i in row:
+    print(i)
 
-    label = row["label"]
-    pixels = row.drop("label").values
+label = row["label"]
+pixels = row.drop("label").values
 
-    image = pixels.reshape(28, 28)
+image = pixels.reshape(28, 28)
 
-    plt.imshow(image, cmap="grey")
-    plt.title(f"Number: {label}")
-    plt.axis("off")
+plt.imshow(image, cmap="grey")
+plt.title(f"Number: {label}")
+plt.axis("off")
 
-    plt.savefig(f"figure{i}.jpg")
-    #plt.show()
+plt.savefig(f"figure{0}.jpg")
+#plt.show()
