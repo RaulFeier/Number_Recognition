@@ -1,84 +1,76 @@
 import tkinter as tk
 from PIL import Image, ImageDraw, ImageOps
+# from tkinter import *
 import numpy as np
 import matplotlib.pyplot as plt
 
 class DigitDrawer:
-    def __init__(self, model):
+    def __init__(self, model, master):
+        self.master = master
+        self.master.title("Digit Recognizer")
         self.model = model
 
-        self.window = tk.Tk()
-        self.window.title("Digit Recognizer")
+        self.canvas_width = 280
+        self.canvas_height = 280
+        self.canvas = tk.Canvas(self.master, width=self.canvas_width, height=self.canvas_height, bg="white")
+        self.canvas.grid(row=0, column=0, columnspan=2, pady=2, padx=2)
 
-        self.canvas_width = 1000
-        self.canvas_height = 1000
-        self.canvas = tk.Canvas(self.window, width=self.canvas_width, height=self.canvas_height, bg='white')
-        self.canvas.pack()
+        self.label = tk.Label(self.master, text="Draw a digit", font=("Helvetica", 16))
+        self.label.grid(row=1, column=0, columnspan=2)
 
-        self.image = Image.new("L", (self.canvas_width, self.canvas_height), 255)
+        self.button_predict = tk.Button(self.master, text="Predict", command=self.predict_digit)
+        self.button_predict.grid(row=2, column=0, sticky="ew")
+
+        self.button_clear = tk.Button(self.master, text="Clear", command=self.clear_canvas)
+        self.button_clear.grid(row=2, column=1, sticky="ew")
+
+        # For drawing on canvas
+        self.canvas.bind("<B1-Motion>", self.draw_lines)
+        self.image = Image.new("L", (self.canvas_width, self.canvas_height), "white")
         self.draw = ImageDraw.Draw(self.image)
 
-        self.canvas.bind("<B1-Motion>", self.paint)
 
-        btn_frame = tk.Frame(self.window)
-        btn_frame.pack()
-
-        predict_btn = tk.Button(btn_frame, text="Predict", command=self.predict_digit)
-        predict_btn.grid(row=0, column=0, padx=10, pady=10)
-
-        clear_btn = tk.Button(btn_frame, text="Clear", command=self.clear_canvas)
-        clear_btn.grid(row=0, column=1, padx=10, pady=10)
-
-        self.result_label = tk.Label(self.window, text="Draw a digit", font=("Arial", 20))
-        self.result_label.pack(pady=10)
-
-    def paint(self, event):
+    def draw_lines(self, event):
         x, y = event.x, event.y
-        r = 4
-        self.canvas.create_oval(x - r, y - r, x + r, y + r, fill='black')
-        self.draw.ellipse([x - r, y - r, x + r, y + r], fill=0)
+        r = 8  # thickness of the stroke
+        self.canvas.create_oval(x - r, y - r, x + r, y + r, fill="black", outline="black")
+        self.draw.ellipse([x - r, y - r, x + r, y + r], fill="black")
 
     def clear_canvas(self):
         self.canvas.delete("all")
-        self.draw.rectangle([0, 0, self.canvas_width, self.canvas_height], fill=255)
-        self.result_label.config(text="Draw a digit")
+        self.draw.rectangle([0, 0, self.canvas_width, self.canvas_height], fill="white")
+        self.label.configure(text="Draw a digit")
 
     def preprocess_image(self):
-        img = self.image
-        inverted = ImageOps.invert(img)
-        bbox = inverted.getbbox()
+        image_resized = self.image.resize((28, 28)) 
 
-        if bbox is None:
-            return np.zeros((784, 1))  # blank canvas
+        image_array = np.array(image_resized).astype(np.float32)
+        image_array = 255.0 - image_array  # manually invert to get white digits on black background
+        image_array /= 255.0  # normalize to [0, 1]
 
-         # Crop to digit area
-        cropped = inverted.crop(bbox)
-
-        # Resize to 20x20 with antialiasing
-        resized = cropped.resize((28, 28), Image.LANCZOS)
-
-        # Paste into 28x28 canvas (centered)
-        final_img = Image.new("L", (28, 28), 0)
-        upper_left = ((28 - 20) // 2, (28 - 20) // 2)
-        final_img.paste(resized, upper_left)
-
-        # Convert to array
-        img_array = np.array(final_img).astype(np.float32)
-        img_array /= 255.0  # normalize to [0,1]
-        img_array = img_array.reshape(784, 1)
-
-        # plt.imshow(img_array.reshape(28, 28), cmap='gray')
+        # plt.imshow(image_array, cmap='gray')
         # plt.title("Preprocessed GUI Input")
         # plt.show()
 
-        return img_array 
+        # debug_img = Image.fromarray((image_array * 255).astype(np.uint8))
+        # debug_img.show(title="Preprocessed 28x28 Digit")
+
+        image_flattened = image_array.reshape((784, 1)) 
+
+        output = self.model.predict(image_flattened)
+        #print(output)
+
+        return int(np.argmax(output)), max(output) 
 
     def predict_digit(self):
-        img = self.preprocess_image()
-        output = self.model.predict(img)
-        print(output)
-        prediction = int(np.argmax(output))
-        self.result_label.config(text=f"Predicted: {prediction}")
+        digit, confidence = self.preprocess_image()
+        self.label.configure(text=f"Prediction: {digit} ({int(confidence * 100)}%)")
+
+        # img = self.preprocess_image()
+        # output = self.model.predict(img)
+        # print(np.argmax(output), int(max(output) + 100))
+        # prediction = int(np.argmax(output))
+        # self.result_label.config(text=f"Predicted: {prediction}")
 
     def run(self):
-        self.window.mainloop()
+        self.master.mainloop()
